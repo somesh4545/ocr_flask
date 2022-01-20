@@ -1,0 +1,238 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drag & Drop or Browse: File Upload | CodingNepal</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        min-height: 100vh;
+        background: #5256ad;
+      }
+      .drag-area {
+        border: 2px dashed #fff;
+        height: 350px;
+        width: 700px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .drag-area.active {
+        border: 2px solid #fff;
+      }
+      .drag-area .icon {
+        font-size: 100px;
+        color: #fff;
+      }
+      .drag-area header {
+        font-size: 30px;
+        font-weight: 500;
+        color: #fff;
+      }
+      .drag-area span {
+        font-size: 25px;
+        font-weight: 500;
+        color: #fff;
+        margin: 10px 0 15px 0;
+      }
+      .drag-area button {
+        padding: 10px 25px;
+        font-size: 20px;
+        font-weight: 500;
+        border: none;
+        outline: none;
+        background: #fff;
+        color: #5256ad;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .drag-area img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+      textarea {
+        margin-top: 10px;
+        margin-left: 50px;
+        width: 500px;
+        height: auto;
+        -moz-border-bottom-colors: none;
+        -moz-border-left-colors: none;
+        -moz-border-right-colors: none;
+        -moz-border-top-colors: none;
+        border-color: -moz-use-text-color #ffffff #ffffff -moz-use-text-color;
+        border-image: none;
+        border-radius: 6px 6px 6px 6px;
+        border-style: none solid solid none;
+        border-width: medium 1px 1px medium;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) inset;
+        color: #555555;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 1em;
+        line-height: 1.4em;
+        padding: 5px 8px;
+        transition: background-color 0.2s ease 0s;
+        background: none repeat scroll 0 0 #ffffff;
+      }
+
+      textarea:focus {
+        background: none repeat scroll 0 0 #ffffff;
+        outline-width: 0;
+      }
+
+      form {
+        padding: 10px 0px;
+      }
+
+      /* CSS */
+      .button-24 {
+        background: #ff4742;
+        border: 1px solid #ff4742;
+        border-radius: 6px;
+        box-shadow: rgba(0, 0, 0, 0.1) 1px 2px 4px;
+        box-sizing: border-box;
+        color: #ffffff;
+        cursor: pointer;
+        display: inline-block;
+        font-family: nunito, roboto, proxima-nova, "proxima nova", sans-serif;
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 16px;
+        min-height: 40px;
+        outline: 0;
+        padding: 12px 14px;
+        text-align: center;
+        text-rendering: geometricprecision;
+        text-transform: none;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        vertical-align: middle;
+      }
+
+      .button-24:hover,
+      .button-24:active {
+        background-color: initial;
+        background-position: 0 0;
+        color: #ff4742;
+      }
+
+      .button-24:active {
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="drag-area">
+      <!-- <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div> -->
+      <header>Drag & Drop to Upload File</header>
+      <span>OR</span>
+      <button>Browse File</button>
+      <form action="" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" hidden />
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+    <h1>Result:</h1>
+    {% if extracted_text %}
+    <p>The extracted text from the image above is:</p>
+    <button class="button-24" onclick="copy()">
+      <i class="far fa-copy"></i>
+    </button>
+    <textarea name="j" id="textarea" cols="30" rows="10">
+{{extracted_text}}</textarea
+    >
+
+    {% else %} The extracted text will be displayed here {% endif %} {% if msg
+    %}
+    <p>{{msg}}</p>
+    {% endif %}
+    <script>
+      //selecting all required elements
+      const dropArea = document.querySelector(".drag-area"),
+        dragText = dropArea.querySelector("header"),
+        button = dropArea.querySelector("button"),
+        input = dropArea.querySelector("input");
+      let file; //this is a global variable and we'll use it inside multiple functions
+
+      button.onclick = () => {
+        input.click(); //if user click on the button then the input also clicked
+      };
+
+      input.addEventListener("change", function () {
+        //getting user select file and [0] this means if user select multiple files then we'll select only the first one
+        file = this.files[0];
+        dropArea.classList.add("active");
+        showFile(); //calling function
+      });
+
+      //If user Drag File Over DropArea
+      dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault(); //preventing from default behaviour
+        dropArea.classList.add("active");
+        dragText.textContent = "Release to Upload File";
+      });
+
+      //If user leave dragged File from DropArea
+      dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("active");
+        dragText.textContent = "Drag & Drop to Upload File";
+      });
+
+      //If user drop File on DropArea
+      dropArea.addEventListener("drop", (event) => {
+        event.preventDefault(); //preventing from default behaviour
+        //getting user select file and [0] this means if user select multiple files then we'll select only the first one
+        file = event.dataTransfer.files[0];
+        showFile(); //calling function
+      });
+
+      function showFile() {
+        let fileType = file.type; //getting selected file type
+        let validExtensions = ["image/jpeg", "image/jpg", "image/png"]; //adding some valid image extensions in array
+        if (validExtensions.includes(fileType)) {
+          //if user selected file is an image file
+          let fileReader = new FileReader(); //creating new FileReader object
+          fileReader.onload = () => {
+            let fileURL = fileReader.result; //passing user file source in fileURL variable
+            // UNCOMMENT THIS BELOW LINE. I GOT AN ERROR WHILE UPLOADING THIS POST SO I COMMENTED IT
+            // let imgTag = `<img src="${fileURL}" alt="image">`; //creating an img tag and passing user selected file source inside src attribute
+            dropArea.innerHTML = imgTag; //adding that created img tag inside dropArea container
+          };
+          fileReader.readAsDataURL(file);
+        } else {
+          alert("This is not an Image File!");
+          dropArea.classList.remove("active");
+          dragText.textContent = "Drag & Drop to Upload File";
+        }
+      }
+      function copy() {
+        let textarea = document.getElementById("textarea");
+        textarea.select();
+        document.execCommand("copy");
+      }
+    </script>
+  </body>
+</html>
